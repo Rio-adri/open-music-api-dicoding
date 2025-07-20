@@ -29,7 +29,7 @@ const mapDBToModelAlbum = (rows) => {
     rows.forEach((row) => {
       if (row.song_id) {
         album.songs.push({
-          id: `song-${row.song_id}`,
+          id: row.song_id,
           title: row.title,
           performer: row.performer,
         });

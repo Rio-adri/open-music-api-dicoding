@@ -10,7 +10,7 @@
 const up = (pgm) => {
     pgm.createTable('songs', {
         id:{
-            type: 'VARCHAR(20)',
+            type: 'VARCHAR(50)',
             primaryKey:true,
         },
         title: {
@@ -34,19 +34,12 @@ const up = (pgm) => {
             notNull: false
         },
         albumid: {
-            type: 'VARCHAR(20)',
+            type: 'VARCHAR(50)',
             notNull: false,
         }
     });
 
-    pgm.addConstraint('songs', 'songs_albumid_fkey', {
-        foreignKeys: {
-            columns: 'albumid',
-            references: 'albums(id)',
-            onDelete: 'SET NULL',
-            onUpdate: 'CASCADE'
-        }
-    });
+    pgm.addConstraint('songs', 'songs_albumid_fkey', 'FOREIGN KEY(albumid) REFERENCES albums(id) ON DELETE SET NULL ON UPDATE CASCADE');
 };
 
 /**
@@ -55,6 +48,7 @@ const up = (pgm) => {
  * @returns {Promise<void> | void}
  */
 const down = (pgm) => {
+    pgm.dropConstraint('songs', 'songs_albumid_fkey');
     pgm.dropTable('songs');
 };
 
