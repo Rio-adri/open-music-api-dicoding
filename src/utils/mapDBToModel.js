@@ -13,7 +13,7 @@ const mapDBToModelSong = ({
     performer,
     genre,
     duration,
-    albumId: `album-${albumid}`
+    albumId: albumid
 });
 
 const mapDBToModelAlbum = (rows) => {
@@ -38,6 +38,34 @@ const mapDBToModelAlbum = (rows) => {
   
     return album;
 };
+
+const forPlaylist = ({
+  id,
+  name,
+  owner,
+}) => ({
+  id,
+  name,
+  username: owner,
+});
+
+const forPlaylistSongs = (rows) => {
+  const { id, name, username } = rows[0];
+
+  const songs = rows.map(row => ({
+    id: row.song_id,
+    title: row.title,
+    performer: row.performer,
+  }));
+
+  return {
+    id,
+    name,
+    username,
+    songs,
+  };
+};
+
   
 
-module.exports = { mapDBToModelSong, mapDBToModelAlbum }
+module.exports = { mapDBToModelSong, mapDBToModelAlbum, forPlaylist, forPlaylistSongs }
