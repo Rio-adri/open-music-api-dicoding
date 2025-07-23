@@ -63,10 +63,13 @@ class SongsHandler {
 
         await this._service.editSong(id, request.payload);
 
-        return {
+        const response = h.response({
             status: 'success',
-            message: 'Lagu berhasil diperbarui',
-        };
+            message: 'Lagu berhasil diperbarui'
+        });
+
+        response.code(200);
+        return response;
     }
 
     async deleteSongHandler (request, h){
@@ -74,10 +77,13 @@ class SongsHandler {
 
         await this._service.deleteSong(id);
 
-        return {
+        const response = h.response({
             status: 'success',
-            message: 'Lagu berhasil dihapus',
-        };
+            message: 'Lagu berhasil dihapus'
+        });
+
+        response.code(200);
+        return response;
     }
 }
 

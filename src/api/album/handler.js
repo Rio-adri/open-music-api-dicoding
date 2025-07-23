@@ -47,10 +47,12 @@ class AlbumHandler {
 
         await this._service.editAlbum(id, request.payload);
 
-        return {
+        const response = h.response({
             status: 'success',
             message: 'Album berhasil diperbarui',
-        };
+        });
+        response.code(200);
+        return response;
     }
 
     async deleteAlbumHandler (request, h){
@@ -58,10 +60,13 @@ class AlbumHandler {
 
         await this._service.deleteAlbum(id);
 
-        return {
+        const response = h.response({
             status: 'success',
             message: 'Album berhasil dihapus',
-        };
+        });
+
+        response.code(200);
+        return response;
     }
 }
 

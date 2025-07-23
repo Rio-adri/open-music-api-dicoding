@@ -62,11 +62,12 @@ class AuthenticationsHandler {
         await this._authenticationsService.verifyRefreshToken(refreshToken);
         await this._authenticationsService.deleteRefreshToken(refreshToken);
 
-        return {
+        const response = h.response({
             status: 'success',
             message: 'Refresh token berhasil dihapus'
-        }
-
+        });
+        response.code(200);
+        return response;
     }
 }
 
