@@ -2,8 +2,6 @@
  * @type {import('node-pg-migrate').ColumnDefinitions | undefined}
  */
 
-const { default: pg } = require('pg');
-
 /**
  * @param pgm {import('node-pg-migrate').MigrationBuilder}
  * @param run {() => void | undefined}
