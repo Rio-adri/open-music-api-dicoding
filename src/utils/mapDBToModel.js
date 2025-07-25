@@ -42,11 +42,11 @@ const mapDBToModelAlbum = (rows) => {
 const forPlaylist = ({
   id,
   name,
-  owner,
+  username,
 }) => ({
   id,
   name,
-  username: owner,
+  username,
 });
 
 const forPlaylistSongs = (rows) => {

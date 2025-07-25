@@ -6,8 +6,9 @@ const AuthorizationError = require('./../../exceptions/AuthorizationError');
 const { forPlaylist, forPlaylistSongs } = require("../../utils/mapDBToModel");
 
 class PlaylistsService {
-    constructor() {
+    constructor(collaborationService) {
         this._pool = new Pool();
+        this._collaborationService = collaborationService;
     }
 
     async addPlaylist({ name, owner }) {
@@ -29,15 +30,11 @@ class PlaylistsService {
 
     async getPlaylist(owner) {
         const query = {
-            text: 'SELECT * FROM playlists WHERE owner=$1',
+            text: 'SELECT p.*, u.username FROM playlists p LEFT JOIN collaborations c ON c.playlist_id = p.id LEFT JOIN users u ON u.id = p.owner WHERE p.owner=$1 OR c.user_id = $1 GROUP BY p.id, u.username',
             values: [owner],
         }
 
         const result = await this._pool.query(query);
-
-        if(!result.rows.length) {
-            throw new NotFoundError('Playlist tidak ditemukan');
-        }
 
         return result.rows.map(forPlaylist);
     }
@@ -55,7 +52,7 @@ class PlaylistsService {
         }
     }
 
-    async verifyPlaylistOwner({ playlistId, owner }) {
+    async verifyPlaylistOwner(playlistId, owner) {
         const query = {
             text: 'SELECT * FROM playlists WHERE id=$1',
             values: [playlistId],
@@ -122,6 +119,22 @@ class PlaylistsService {
 
         if (!result.rows.length) {
             throw new NotFoundError('Lagu gagal dihapus. Id tidak ditemukan');
+        }
+    }
+
+    async verifyPlaylistAccess(playlistId, userId) {
+        try {
+            await this.verifyPlaylistOwner(playlistId, userId);
+        } catch(error) {
+            if(error instanceof NotFoundError) {
+                throw error;
+            }
+
+            try {
+                await this._collaborationService.verifyCollabolator(playlistId, userId);
+            } catch {
+                throw error;
+            }
         }
     }
 }
