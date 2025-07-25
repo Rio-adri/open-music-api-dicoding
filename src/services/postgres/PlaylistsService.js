@@ -6,17 +6,18 @@ const AuthorizationError = require('./../../exceptions/AuthorizationError');
 const { forPlaylist, forPlaylistSongs } = require("../../utils/mapDBToModel");
 
 class PlaylistsService {
-    constructor(collaborationService) {
+    constructor(collaborationService,activityService) {
         this._pool = new Pool();
         this._collaborationService = collaborationService;
+        this._activityService = activityService;
     }
 
-    async addPlaylist({ name, owner }) {
+    async addPlaylist({ name, userId }) {
         const id = `playlist-${nanoid(16)}`;
 
         const query = {
             text: 'INSERT INTO playlists VALUES($1, $2, $3) RETURNING id',
-            values: [id, name, owner]
+            values: [id, name, userId]
         }
 
         const result = await this._pool.query(query);
@@ -28,10 +29,10 @@ class PlaylistsService {
         return result.rows[0].id;
     }
 
-    async getPlaylist(owner) {
+    async getPlaylist(userId) {
         const query = {
             text: 'SELECT p.*, u.username FROM playlists p LEFT JOIN collaborations c ON c.playlist_id = p.id LEFT JOIN users u ON u.id = p.owner WHERE p.owner=$1 OR c.user_id = $1 GROUP BY p.id, u.username',
-            values: [owner],
+            values: [userId],
         }
 
         const result = await this._pool.query(query);
@@ -52,7 +53,7 @@ class PlaylistsService {
         }
     }
 
-    async verifyPlaylistOwner(playlistId, owner) {
+    async verifyPlaylistOwner(playlistId, userId) {
         const query = {
             text: 'SELECT * FROM playlists WHERE id=$1',
             values: [playlistId],
@@ -66,12 +67,12 @@ class PlaylistsService {
 
         const playlist = result.rows[0];
 
-        if(playlist.owner !== owner) {
+        if(playlist.owner !== userId) {
             throw new AuthorizationError('Anda tidak berhak mengakses resource ini');
         }
     }
 
-    async addSongIntoPlaylist({ playlistId, songId }) {
+    async addSongIntoPlaylist({ playlistId, songId, userId }) {
         const songCheck = await this._pool.query({
             text: 'SELECT id FROM songs WHERE id = $1',
             values: [songId],
@@ -80,6 +81,7 @@ class PlaylistsService {
         if (!songCheck.rows.length) {
             throw new NotFoundError('Lagu tidak ditemukan');
         }
+
     
         const id = nanoid(16);
         const query = {
@@ -87,11 +89,14 @@ class PlaylistsService {
             values: [id, playlistId, songId],
         }
 
+
         const result = await this._pool.query(query);
 
         if(!result.rows.length) {
             throw new InvariantError('Gagal menambahkan lagu');
         }
+
+        await this._activityService.addActivity({ playlistId, songId, userId, action: 'add'});
     }
 
     async getSongsFromPlaylist(playlistId) {
@@ -109,7 +114,7 @@ class PlaylistsService {
         return forPlaylistSongs(result.rows);
     }
 
-    async deleteSongFromPlaylist(songId) {
+    async deleteSongFromPlaylist(playlistId, songId, userId) {
         const query = {
             text: 'DELETE FROM playlist_songs WHERE song_id=$1 RETURNING id',
             values: [songId]
@@ -120,6 +125,9 @@ class PlaylistsService {
         if (!result.rows.length) {
             throw new NotFoundError('Lagu gagal dihapus. Id tidak ditemukan');
         }
+
+        await this._activityService.addActivity({ playlistId, songId, userId, action: 'delete'});
+
     }
 
     async verifyPlaylistAccess(playlistId, userId) {
