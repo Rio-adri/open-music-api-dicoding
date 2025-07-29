@@ -120,7 +120,7 @@ const init = async () => {
         },
         {
           plugin: exportsPlugin,
-          options: { service: producerService, validator: ExportsValidator }
+          options: { producerService, playlistsService: playlistsS, validator: ExportsValidator }
         }
     ]);
 
