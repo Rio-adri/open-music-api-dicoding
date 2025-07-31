@@ -23,6 +23,7 @@ const mapDBToModelAlbum = (rows) => {
       id: firstRow.id,
       name: firstRow.name,
       year: firstRow.year,
+      coverUrl: firstRow.cover,
       songs: [],
     };
   

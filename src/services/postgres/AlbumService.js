@@ -29,7 +29,7 @@ class AlbumService {
 
     async getAlbumById(id) {
         const query = {
-            text: 'SELECT a.id, a.name, a.year, s.id as song_id, s.title, s.performer FROM albums a LEFT JOIN songs s ON a.id = s.albumid WHERE a.id=$1',
+            text: 'SELECT a.id, a.name, a.year, a.cover, s.id as song_id, s.title, s.performer FROM albums a LEFT JOIN songs s ON a.id = s.albumid WHERE a.id=$1',
             values:[id]
         }
 
@@ -67,6 +67,19 @@ class AlbumService {
 
         if (!result.rows.length) {
             throw new NotFoundError('Album gagal dihapus. Id tidak ditemukan');
+        }
+    }
+
+    async addCoverAlbum(id, url) {
+        const query = {
+            text: 'UPDATE albums SET cover = $1 WHERE id = $2 RETURNING id',
+            values: [url, id]
+        }
+
+        const result = await this._pool.query(query);
+
+        if(!result.rows.length) {
+            throw new NotFoundError('Album tidak ditemukan');
         }
     }
 }
