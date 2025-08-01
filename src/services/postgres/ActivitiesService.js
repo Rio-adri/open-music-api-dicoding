@@ -30,7 +30,9 @@ class ActivitesService {
 
         const result = await this._pool.query(query);
 
-        if(!result.rows.length) {
+        const { rowCount } = await this._pool.query(query);
+
+        if(!rowCount) {
             throw new NotFoundError('Activity tidak ditemukan');
         }
 
