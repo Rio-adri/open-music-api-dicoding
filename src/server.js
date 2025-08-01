@@ -4,6 +4,7 @@ const Hapi = require('@hapi/hapi');
 const Jwt = require('@hapi/jwt');
 const Inert = require('@hapi/inert');
 const path = require('path');
+const config = require('./utils/config');
 
 // album
 const albumPlugin = require('./api/album/index');
@@ -50,11 +51,15 @@ const uploadsPlugin = require('./api/uploads');
 const StorageService = require('./services/storage/StorageService');
 const UploadsValidator = require('./validator/uploads');
 
+// cache
+const CacheService = require('./services/redis/CacheService');
+
 
 const ClientError = require("./exceptions/ClientError");
 
 const init = async () => {
-    const albumS = new AlbumService();
+    const cacheService = new CacheService();
+    const albumS = new AlbumService(cacheService);
     const songS = new SongService();
     const userS = new UsersService();
     const authS = new AuthenticationsService();
@@ -64,8 +69,8 @@ const init = async () => {
     const storageService = new StorageService(path.resolve(__dirname, 'api/uploads/file/images'));
 
     const server = Hapi.server({
-        port: process.env.PORT,
-        host: process.env.HOST,
+        port: config.app.port,
+        host: config.app.host,
         routes: {
             cors: {
                 origin: ['*'],
@@ -85,12 +90,12 @@ const init = async () => {
 
     // mendefinisikan strategy autentikasi jwt
     server.auth.strategy('openmusicapi_jwt', 'jwt', {
-      keys: process.env.ACCESS_TOKEN_KEY,
+      keys: config.jwt.key,
       verify: {
         aud: false,
         iss: false,
         sub: false,
-        maxAgeSec: process.env.ACCESS_TOKEN_AGE,
+        maxAgeSec: config.jwt.age,
       },
       validate: (artifacts) => ({
         isValid: true,

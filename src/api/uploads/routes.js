@@ -20,8 +20,7 @@ const routes = (handler) => [
         path: '/upload/{param*}',
         handler: {
             directory: {
-                path: path.resolve(__dirname, 'file/images'),
-                index: false,
+                path: path.resolve(__dirname, 'file'),
             },
         },
     }

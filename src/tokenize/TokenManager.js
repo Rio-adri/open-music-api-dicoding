@@ -1,13 +1,14 @@
 const Jwt = require('@hapi/jwt');
+const config = require('../utils/config');
 const InvariantError = require('../exceptions/InvariantError');
 
 const TokenManager = {
-    createAccessToken: (payload) => Jwt.token.generate(payload, process.env.ACCESS_TOKEN_KEY),
-    createRefreshToken: (payload) => Jwt.token.generate(payload, process.env.REFRESH_TOKEN_KEY),
+    createAccessToken: (payload) => Jwt.token.generate(payload, config.jwt.key),
+    createRefreshToken: (payload) => Jwt.token.generate(payload, config.jwt.refresh),
     verifyRefreshToken: (refreshToken) => {
         try {
             const artifacts = Jwt.token.decode(refreshToken);
-            Jwt.token.verifySignature(artifacts, process.env.REFRESH_TOKEN_KEY);
+            Jwt.token.verifySignature(artifacts, config.jwt.refresh);
             const { payload } = artifacts.decoded;
             return payload;
           } catch {
